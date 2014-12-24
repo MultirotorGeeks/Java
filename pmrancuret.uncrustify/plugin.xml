@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="4.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            commandId="pmrancuret.uncrustify.commands.exec"
+            class="pmrancuret.uncrustify.handlers.handleCrust" >
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus" >
+      <menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=additions" >
+         <separator name="pmrancuret.uncrustify.separator1" visible="true" />
+         <command
+               commandId="pmrancuret.uncrustify.commands.exec"
+               label="Uncrustify Selection"
+               mnemonic="U"
+               style="push"
+               tooltip="Run beautifier on selection" >
+         </command>
+         <separator name="pmrancuret.uncrustify.separator2" visible="true" />
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages" >
+      <page
+            name="Uncrustify"
+            class="pmrancuret.uncrustify.preferences.PreferencePage"
+            id="pmrancuret.uncrustify.preferences.PreferencePage" >
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences" >
+      <initializer
+            class="pmrancuret.uncrustify.preferences.PreferenceInitializer" >
+      </initializer>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands" >
+      <command
+            id="pmrancuret.uncrustify.commands.exec"
+            name="Uncrustify" >
+      </command>
+   </extension>
+</plugin>
