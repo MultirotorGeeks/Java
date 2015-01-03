@@ -6,7 +6,7 @@
       provider-name="pmrancuret">
 
    <description>
-      Uncrustify plugin capability
+      Uncrustify plugin capability.  Allows the user to right click on files and run the specified uncrustify program in order to clean up code format.
    </description>
 
    <requires>
