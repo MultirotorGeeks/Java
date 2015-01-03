@@ -83,7 +83,7 @@ public class handleCrust extends AbstractHandler {
 					{
 						MessageDialog.openInformation ( PlatformUI.getWorkbench ( ).getActiveWorkbenchWindow ( ).getShell ( ),
 		                                                "Incompatible File",
-		                                                "This file type is not supported based on current Uncrustify configuration." );
+		                                                "The file type for file \"" + file.getName ( ) + "\" is not supported based on current Uncrustify configuration." );
 						continue;
 					}
         		}
@@ -91,7 +91,7 @@ public class handleCrust extends AbstractHandler {
 	        	/* Dirty files skipped */
 	        	if ( fileDirty ( file.getFullPath ( ).toString ( ) ) )
 	        	{
-	        		badFiles += "\t" + file.getName ( ) + "\n";
+	        		badFiles += "\t\"" + file.getName ( ) + "\"\n";
 	        	}
 	        	else
 	        	{
@@ -246,34 +246,63 @@ public class handleCrust extends AbstractHandler {
 
         
         /* Build the command line */
-        String argVal = uncrustPref.getString ( PreferenceConstants.P_PATH );
+        String argVal = "\"";
+        argVal = argVal.concat ( uncrustPref.getString( PreferenceConstants.P_PATH ) );
         
         /* Set quiet mode (no stderr) and add config file */
-        argVal = argVal.concat ( " -q -c " );
+        argVal = argVal.concat ( "\" -c \"" );
         argVal = argVal.concat ( uncrustPref.getString ( PreferenceConstants.P_CONFIG ) );
 		
         /* Check for in-place modification */
         if ( uncrustPref.getBoolean ( PreferenceConstants.P_INPLACE ) )
         {
-        	argVal = argVal.concat ( " --no-backup " );
+        	argVal = argVal.concat ( "\" --no-backup \"" );
         }
         else
         {
-        	argVal = argVal.concat ( " --replace " );
+        	argVal = argVal.concat ( "\" --replace \"" );
         }
         
         /* Complete the argument line */
     	argVal = argVal.concat( file.getLocation ( ).toFile ( ).getAbsolutePath ( ) );
+    	argVal = argVal.concat( "\"" );
     	
 
     	/* Try / catch for process operations */
 		try
 		{
+		    	/* Print message describing the command to run */
+		    	String uncrustMsg = String.format("Uncrustify Plugin Running the following command to process file:\n%s\n\n", argVal);
+		    	Activator.uncrustifyOut.print( uncrustMsg );
 
 			/* Run beautifier and wait for completion */
 			Process proc = Runtime.getRuntime ( ).exec ( argVal );
+			
+			/* Setup streams */
+			BufferedReader readFromProc = new BufferedReader ( new InputStreamReader  ( proc.getInputStream  ( ) ) );
+			
+			/* Collect output */
+			String uncrustOut = new String();
+			int x;
+			while ( ( x = readFromProc.read ( ) ) != -1 )
+			{
+			    uncrustOut += (char) x;
+			}
+			readFromProc.close ( );
+			
+			/* Wait for process to complete */
 			proc.waitFor ( );
 			
+			/* Print completion message in console */
+			if ( uncrustOut.isEmpty() )
+			{
+			    uncrustMsg = String.format("Uncrustify program completed processing the file.\n\n" );
+			}
+			else
+			{
+			    uncrustMsg = String.format("Uncrustify program completed processing the file, and produced the following output:\n%s\n\n", uncrustOut );
+			}
+		    	Activator.uncrustifyOut.print( uncrustMsg );
 		}
 		catch ( IOException e )
 		{
@@ -291,28 +320,33 @@ public class handleCrust extends AbstractHandler {
 	private String processText ( String oldText )
 	{
 		
-		/* Setup return text */
-		String newText = new String ( );
+	/* Setup return text */
+	String newText = new String ( );
 
-		/* Get preferences */
+	/* Get preferences */
         IPreferenceStore uncrustPref = Activator.getDefault().getPreferenceStore();
 
         
         /* Build the command line */
-        String argVal = uncrustPref.getString ( PreferenceConstants.P_PATH );
+        String argVal = "\"";
+        argVal = argVal.concat ( uncrustPref.getString( PreferenceConstants.P_PATH ) );
         
         
         /* HARD-CODE TO C LANGUAGE */
-        argVal = argVal.concat ( " -l C " );
+        argVal = argVal.concat ( "\" -l C " );
         
         /* Set quiet mode (no stderr) and add config file */
-        argVal = argVal.concat ( " -q -c " );
+        argVal = argVal.concat ( " -c \"" );
         argVal = argVal.concat ( uncrustPref.getString ( PreferenceConstants.P_CONFIG ) );
+        argVal = argVal.concat ( "\"" );
 		
 
     	/* Try / catch for process operations */
 		try
 		{
+		    	/* Print message describing the command to run */
+		    	String uncrustMsg = String.format( "Uncrustify Plugin Running the following command to process text:\n%s %s\n\n", argVal, oldText );
+		    	Activator.uncrustifyOut.print( uncrustMsg );
 
 			/* Run beautifier and feed it input */
 			Process proc = Runtime.getRuntime ( ).exec ( argVal );
@@ -337,6 +371,10 @@ public class handleCrust extends AbstractHandler {
 			
 			/* Wait for completion */
 			proc.waitFor ( );
+			
+			/* Print completion message in console */
+			uncrustMsg = String.format("Uncrustify program completed processing the file, and produced the following output:\n%s\n\n", newText );
+		    	Activator.uncrustifyOut.print( uncrustMsg );
 			
 		}
 		catch ( IOException e )
